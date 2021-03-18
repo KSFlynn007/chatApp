@@ -70,7 +70,7 @@ export default class Chat extends React.Component{
     onCollectionUpdate = (querySnapshot) => {
         // distributes messages state values over the new array, rather than creating new
         console.log('collection updated')
-        const messages = [...this.state.messages];
+        const messages = [];
         querySnapshot.forEach((doc) => {
             let data = doc.data();
             messages.push({
@@ -90,6 +90,7 @@ export default class Chat extends React.Component{
         this.setState({
             messages,
         })
+        this.renderSystemMessage();
     }
 
     async getMessages() {
@@ -147,6 +148,9 @@ export default class Chat extends React.Component{
     }
 
     componentDidMount() {
+        // props user's name into title of chat message
+        this.props.navigation.setOptions({ title: this.context.name })
+
         // checking if offline or online, will fetch data from either asyncStorage or firestore
         NetInfo.fetch().then(connection => {
             if (connection.isConnected) {
@@ -166,8 +170,8 @@ export default class Chat extends React.Component{
                             name: this.context.name,
                             avatar: 'https://placeimg.com/140/140/any'
                         },
-                        messages: [...this.state.messages],
-                        loggedInText: `Hi ${this.props.route.params.name}, welcome to the chat!`,
+                        messages: [],
+                        loggedInText: `You're logged in as ${this.props.route.params.name}`,
 
                     });
                     this.referenceChatMessages = firebase.firestore().collection('messages');
@@ -183,8 +187,12 @@ export default class Chat extends React.Component{
                 this.getMessages();
             }
         });
-        this.renderSystemMessage();
     }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+        this.authUnsubscribe();
+    };
 
     renderSystemMessage() {
         console.log('render system message');
@@ -195,16 +203,11 @@ export default class Chat extends React.Component{
                     text: `Hi ${this.props.route.params.name}, welcome to the chat!`,
                     createdAt: new Date(),
                 // grey-scaled message above all others, system message used for something like "A has entered chat!", etc.
-                    system: true
-                },
+                    system: true,
+                }, ...this.state.messages
             ]
         })
     }
-
-    componentWillUnmount() {
-        this.unsubscribe();
-        this.authUnsubscribe();
-    };
 
     renderBubble(props) {
         return(
@@ -253,8 +256,8 @@ export default class Chat extends React.Component{
                     margin: 3
                 }}
                 region={{
-                    latitude: currentMessage.location.latitude,
-                    longitude: currentMessage.location.longitude,
+                    latitude: +currentMessage.location.latitude,
+                    longitude: +currentMessage.location.longitude,
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                 }}
@@ -268,9 +271,6 @@ export default class Chat extends React.Component{
         // pulling props from Start.js as passed in onPress
         const {color} = this.props.route.params;
         const {name} = this.context;
-
-        // props user's name into title of chat message
-        this.props.navigation.setOptions({ title: name })
 
         return(
             <View style={{flex: 1, backgroundColor: color }}>
