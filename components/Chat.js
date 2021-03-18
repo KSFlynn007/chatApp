@@ -63,6 +63,7 @@ export default class Chat extends React.Component{
         LogBox.ignoreLogs([
             'Setting a timer',
             'Animated.event now requires a second argument for options',
+            `Animated: 'useNativeDriver'`
             // 'Cannot update a component from inside'
         ])
     }
