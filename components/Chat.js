@@ -150,7 +150,10 @@ export default class Chat extends React.Component{
 
     componentDidMount() {
         // props user's name into title of chat message
-        this.props.navigation.setOptions({ title: this.context.name })
+        this.props.navigation.setOptions({ title: this.props.route.params.name })
+
+        // could also use the AppContext route of ({ title: this.props.context.name }) to avoid the warning error
+
 
         // checking if offline or online, will fetch data from either asyncStorage or firestore
         NetInfo.fetch().then(connection => {
@@ -199,13 +202,14 @@ export default class Chat extends React.Component{
         console.log('render system message');
         this.setState({
             messages: [
+                 ...this.state.messages,
                 {
                     _id: 1,
                     text: `Hi ${this.props.route.params.name}, welcome to the chat!`,
                     createdAt: new Date(),
                 // grey-scaled message above all others, system message used for something like "A has entered chat!", etc.
                     system: true,
-                }, ...this.state.messages
+                }
             ]
         })
     }
@@ -257,6 +261,7 @@ export default class Chat extends React.Component{
                     margin: 3
                 }}
                 region={{
+                    // + symbol is casting to number type
                     latitude: +currentMessage.location.latitude,
                     longitude: +currentMessage.location.longitude,
                     latitudeDelta: 0.0922,
